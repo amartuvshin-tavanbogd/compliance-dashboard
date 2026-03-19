@@ -385,7 +385,7 @@ tbody tr.clickable:hover .arrow-icon { opacity: 1; }
   </div>
   <div class="top-chips">
     <span class="chip active-chip">9 алба</span>
-    <span class="chip active-chip">56 зөрчил</span>
+    <span class="chip active-chip" id="chip-total">— зөрчил</span>
     <span class="chip">🟠 1 өндөр эрсдэл</span>
     <span class="chip">🔁 12 давтагдсан</span>
     <span id="db-sync-indicator" style="display:none;font-size:11px;font-weight:600;color:var(--accent);padding:4px 10px;border-radius:20px;background:rgba(88,166,255,.1);border:1px solid var(--accent);transition:opacity .3s"></span>
@@ -409,14 +409,14 @@ tbody tr.clickable:hover .arrow-icon { opacity: 1; }
 <!-- ===== PAGE 1: OVERVIEW ===== -->
 <div class="page active" id="page-overview">
   <div class="kpi-row">
-    <div class="kpi k-t"><div class="kpi-n">56</div><div class="kpi-l">Нийт зөрчил</div></div>
-    <div class="kpi k-vh"><div class="kpi-n">0</div><div class="kpi-l">🔴 Эрсдэл маш өндөр</div></div>
-    <div class="kpi k-h"><div class="kpi-n">1</div><div class="kpi-l">🟠 Эрсдэл өндөр</div></div>
-    <div class="kpi k-m"><div class="kpi-n">18</div><div class="kpi-l">🟡 Эрсдэл дунд</div></div>
-    <div class="kpi k-l"><div class="kpi-n">24</div><div class="kpi-l">🟢 Эрсдэл бага</div></div>
-    <div class="kpi k-i"><div class="kpi-n">13</div><div class="kpi-l">🔵 Сайжруулах</div></div>
-    <div class="kpi k-r"><div class="kpi-n">12</div><div class="kpi-l">🔁 Давтагдсан</div></div>
-    <div class="kpi k-e"><div class="kpi-n">38</div><div class="kpi-l">❌ МУУ үнэлгээ</div></div>
+    <div class="kpi k-t"><div class="kpi-n" id="kpi-total">—</div><div class="kpi-l">Нийт зөрчил</div></div>
+    <div class="kpi k-vh"><div class="kpi-n" id="kpi-vhigh">—</div><div class="kpi-l">🔴 Эрсдэл маш өндөр</div></div>
+    <div class="kpi k-h"><div class="kpi-n" id="kpi-high">—</div><div class="kpi-l">🟠 Эрсдэл өндөр</div></div>
+    <div class="kpi k-m"><div class="kpi-n" id="kpi-mid">—</div><div class="kpi-l">🟡 Эрсдэл дунд</div></div>
+    <div class="kpi k-l"><div class="kpi-n" id="kpi-low">—</div><div class="kpi-l">🟢 Эрсдэл бага</div></div>
+    <div class="kpi k-i"><div class="kpi-n" id="kpi-impr">—</div><div class="kpi-l">🔵 Сайжруулах</div></div>
+    <div class="kpi k-r"><div class="kpi-n" id="kpi-rep">—</div><div class="kpi-l">🔁 Давтагдсан</div></div>
+    <div class="kpi k-e"><div class="kpi-n" id="kpi-muu">—</div><div class="kpi-l">❌ МУУ үнэлгээ</div></div>
   </div>
 
   <div class="charts-row">
@@ -428,20 +428,20 @@ tbody tr.clickable:hover .arrow-icon { opacity: 1; }
   <div class="prog-row">
     <div class="pcard">
       <h3>Эрсдэлийн хувь</h3>
-      <div class="pb"><div class="pb-top"><span>🔴 Эрсдэл маш өндөр</span><span>0 (0%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#ef4444" data-w="0"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>🟠 Эрсдэл өндөр</span><span>1 (2%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#f97316" data-w="2"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>🟡 Эрсдэл дунд</span><span>18 (32%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#f97316" data-w="32"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>🟢 Эрсдэл бага</span><span>24 (43%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#22c55e" data-w="43"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>🔵 Сайжруулах</span><span>13 (23%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#3b82f6" data-w="23"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>🔴 Эрсдэл маш өндөр</span><span id="pb-lbl-vhigh">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-vhigh" style="background:#ef4444" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>🟠 Эрсдэл өндөр</span><span id="pb-lbl-high">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-high" style="background:#ea580c" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>🟡 Эрсдэл дунд</span><span id="pb-lbl-mid">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-mid" style="background:#d97706" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>🟢 Эрсдэл бага</span><span id="pb-lbl-low">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-low" style="background:#16a34a" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>🔵 Сайжруулах</span><span id="pb-lbl-impr">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-impr" style="background:#2563eb" data-w="0"></div></div></div>
     </div>
     <div class="pcard">
       <h3>Албаар (хувь)</h3>
-      <div class="pb"><div class="pb-top"><span>💰 Санхүү бүртгэл</span><span>13 (23%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#58a6ff" data-w="23"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>📊 Борлуулалт</span><span>10 (18%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#bc8cff" data-w="18"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>🔧 АТМ засвар</span><span>8 (14%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#39d0d8" data-w="14"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>💻 МТ газар</span><span>7 (12%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#3fb950" data-w="12"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>👥 Хүний нөөц</span><span>6 (11%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#d29922" data-w="11"></div></div></div>
-      <div class="pb"><div class="pb-top"><span>📣 Бусад алба</span><span>12 (22%)</span></div><div class="pb-track"><div class="pb-fill" style="background:#ec4899" data-w="22"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>💰 Санхүү бүртгэл</span><span id="pb-lbl-finance">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-finance" style="background:#3b82f6" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>📊 Борлуулалт</span><span id="pb-lbl-sales">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-sales" style="background:#a855f7" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>🔧 АТМ засвар</span><span id="pb-lbl-atm">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-atm" style="background:#06b6d4" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>💻 МТ газар</span><span id="pb-lbl-it">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-it" style="background:#16a34a" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>👥 Хүний нөөц</span><span id="pb-lbl-hr">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-hr" style="background:#d97706" data-w="0"></div></div></div>
+      <div class="pb"><div class="pb-top"><span>📣 Бусад алба</span><span id="pb-lbl-other">—</span></div><div class="pb-track"><div class="pb-fill" id="pb-other" style="background:#ec4899" data-w="0"></div></div></div>
     </div>
   </div>
 
@@ -489,180 +489,8 @@ tbody tr.clickable:hover .arrow-icon { opacity: 1; }
     </div>
 
     <!-- Албаар гүйцэтгэл -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:36px">
-
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #58a6ff;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">💰 Санхүү</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.12);padding:2px 8px;border-radius:20px">⚠️ Анхаарал</span>
-            <span style="font-size:18px;font-weight:900;color:#58a6ff">25%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:25%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:50%" title="Явцтай"></div>
-          <div style="background:#d97706;width:3%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 8</span><span>🔄 16</span><span>⏳ 1</span><span>⚠️ 7</span>
-          <span style="margin-left:auto">Нийт 32 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #39d0d8;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">🔧 АТМ засвар</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#d97706;background:rgba(217,119,6,.12);padding:2px 8px;border-radius:20px">🔄 Дунд</span>
-            <span style="font-size:18px;font-weight:900;color:#39d0d8">42%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:42%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:42%" title="Явцтай"></div>
-          <div style="background:#d97706;width:5%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 8</span><span>🔄 8</span><span>⏳ 1</span><span>⚠️ 2</span>
-          <span style="margin-left:auto">Нийт 19 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #3fb950;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">💻 МТ газар</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#16a34a;background:rgba(34,197,94,.12);padding:2px 8px;border-radius:20px">✅ Сайн</span>
-            <span style="font-size:18px;font-weight:900;color:#3fb950">70%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:70%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:10%" title="Явцтай"></div>
-          <div style="background:#d97706;width:20%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 7</span><span>🔄 1</span><span>⏳ 2</span><span>⚠️ 0</span>
-          <span style="margin-left:auto">Нийт 10 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #bc8cff;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">📊 Борлуулалт</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.12);padding:2px 8px;border-radius:20px">⚠️ Анхаарал</span>
-            <span style="font-size:18px;font-weight:900;color:#bc8cff">0%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:0%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:8%" title="Явцтай"></div>
-          <div style="background:#d97706;width:0%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 0</span><span>🔄 2</span><span>⏳ 0</span><span>⚠️ 22</span>
-          <span style="margin-left:auto">Нийт 24 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #d29922;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">👥 Хүний нөөц</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.12);padding:2px 8px;border-radius:20px">⚠️ Анхаарал</span>
-            <span style="font-size:18px;font-weight:900;color:#d29922">0%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:0%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:43%" title="Явцтай"></div>
-          <div style="background:#d97706;width:0%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 0</span><span>🔄 3</span><span>⏳ 0</span><span>⚠️ 4</span>
-          <span style="margin-left:auto">Нийт 7 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #ec4899;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">📣 Маркетинг</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.12);padding:2px 8px;border-radius:20px">⚠️ Анхаарал</span>
-            <span style="font-size:18px;font-weight:900;color:#ec4899">0%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:0%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:44%" title="Явцтай"></div>
-          <div style="background:#d97706;width:0%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 0</span><span>🔄 4</span><span>⏳ 0</span><span>⚠️ 5</span>
-          <span style="margin-left:auto">Нийт 9 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #0ea5e9;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">🏥 Үйл аж.</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.12);padding:2px 8px;border-radius:20px">⚠️ Анхаарал</span>
-            <span style="font-size:18px;font-weight:900;color:#0ea5e9">0%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:0%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:12%" title="Явцтай"></div>
-          <div style="background:#d97706;width:0%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 0</span><span>🔄 1</span><span>⏳ 0</span><span>⚠️ 7</span>
-          <span style="margin-left:auto">Нийт 8 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #f85149;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">⛑️ ХАБЭА</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.12);padding:2px 8px;border-radius:20px">⚠️ Анхаарал</span>
-            <span style="font-size:18px;font-weight:900;color:#f85149">0%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:0%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:86%" title="Явцтай"></div>
-          <div style="background:#d97706;width:14%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 0</span><span>🔄 6</span><span>⏳ 1</span><span>⚠️ 0</span>
-          <span style="margin-left:auto">Нийт 7 зөвлөмж</span>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #84cc16;border-radius:10px;padding:14px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">✅ Чанар</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.12);padding:2px 8px;border-radius:20px">⚠️ Анхаарал</span>
-            <span style="font-size:18px;font-weight:900;color:#84cc16">0%</span>
-          </div>
-        </div>
-        <div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">
-          <div style="background:#16a34a;width:0%" title="Хэрэгжсэн"></div>
-          <div style="background:#58a6ff;width:0%" title="Явцтай"></div>
-          <div style="background:#d97706;width:0%" title="Хүлээгдэж буй"></div>
-          <div style="background:#ef4444;flex:1" title="Хугацаа хэтэрсэн"></div>
-        </div>
-        <div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">
-          <span>✅ 0</span><span>🔄 0</span><span>⏳ 0</span><span>⚠️ 5</span>
-          <span style="margin-left:auto">Нийт 5 зөвлөмж</span>
-        </div>
-      </div>
-    </div>
+    <div id="dept-summary-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:36px">
+    </div>/div>
   </div>
 
   <!-- ===== WEEKLY UPDATE INLINE ===== -->
@@ -2112,7 +1940,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDi
 
 // ====== GOOGLE SHEETS DATABASE CONFIG ======
 // ⬇ Apps Script Web App URL-ийг энд оруулна уу (deploy хийсний дараа)
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbwqnuSpKdMQCT1ylicHX1MuxhTdkWQ_h1Ba1_08rLGDmxfJwRyRFMuPwEBfwlmDDpCOqA/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzIkhxD3wRPnH_trecMb4gFuzujKky2rFMgT4H8Vfdb4wcN4QZJxwGYJBst2Nhh1yL3cQ/exec';
 
 // Local cache: хурдан ачааллахад localStorage ашигладаг,
 // Google Sheets-д persist хийдэг
@@ -2264,9 +2092,8 @@ async function importFromSheets() {
     // (Sheets-д байгаа боловч localStorage-д байхгүй зөрчил нэмэгдсэн)
 
     // UI бүгдийг шинэчлэх
-    filterRows();
-    document.getElementById('rowCount').textContent = violations.length;
-    initExecBars();
+    renderTable(violations);
+    initDashboard();
 
     const msg = '✅ ' + violations.length + ' зөрчил, ' + statusCount + ' статус шинэчлэгдлээ';
     if (indicator) { indicator.textContent = msg; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
@@ -2412,6 +2239,142 @@ function goDept(dept) {
 }
 
 
+
+// ====== INIT DASHBOARD — violations array-с бүгдийг тооцоолж render хийнэ ======
+function initDashboard() {
+  var v = violations;
+  var total = v.length;
+  var cnt = { vhigh:0, high:0, mid:0, low:0, impr:0 };
+  var dept = { finance:0, atm:0, sales:0, it:0, hr:0, marketing:0, ops:0, hse:0, quality:0 };
+  var evalCnt = { muu:0, dund:0 };
+  var repCnt = 0;
+
+  v.forEach(function(viol) {
+    if (cnt[viol.risk] !== undefined) cnt[viol.risk]++;
+    else cnt[viol.risk] = (cnt[viol.risk]||0)+1;
+    if (dept[viol.dept] !== undefined) dept[viol.dept]++;
+    if (evalCnt[viol.eval] !== undefined) evalCnt[viol.eval]++;
+    if (viol.rep) repCnt++;
+  });
+
+  // KPI тоо
+  function setKpi(id, val) { var el = document.getElementById(id); if(el) el.textContent = val; }
+  setKpi('kpi-total', total);
+  setKpi('kpi-vhigh', cnt.vhigh || 0);
+  setKpi('kpi-high',  cnt.high  || 0);
+  setKpi('kpi-mid',   cnt.mid   || 0);
+  setKpi('kpi-low',   cnt.low   || 0);
+  setKpi('kpi-impr',  cnt.impr  || 0);
+  setKpi('kpi-rep',   repCnt);
+  setKpi('kpi-muu',   evalCnt.muu || 0);
+
+  // Topbar chip
+  var chip = document.getElementById('chip-total');
+  if (chip) chip.textContent = total + ' зөрчил';
+
+  // rowCount (table header)
+  var rc = document.getElementById('rowCount');
+  if (rc) rc.textContent = total;
+
+  // Risk progress bars
+  function setPb(id, lblId, count, total) {
+    var pct = total > 0 ? Math.round(count / total * 100) : 0;
+    var fill = document.getElementById(id);
+    var lbl  = document.getElementById(lblId);
+    if (fill) { fill.setAttribute('data-w', pct); fill.style.width = pct + '%'; }
+    if (lbl)  lbl.textContent = count + ' (' + pct + '%)';
+  }
+  setPb('pb-vhigh', 'pb-lbl-vhigh', cnt.vhigh||0, total);
+  setPb('pb-high',  'pb-lbl-high',  cnt.high||0,  total);
+  setPb('pb-mid',   'pb-lbl-mid',   cnt.mid||0,   total);
+  setPb('pb-low',   'pb-lbl-low',   cnt.low||0,   total);
+  setPb('pb-impr',  'pb-lbl-impr',  cnt.impr||0,  total);
+  setPb('pb-finance','pb-lbl-finance', dept.finance||0, total);
+  setPb('pb-sales',  'pb-lbl-sales',   dept.sales||0,   total);
+  setPb('pb-atm',    'pb-lbl-atm',     dept.atm||0,     total);
+  setPb('pb-it',     'pb-lbl-it',      dept.it||0,      total);
+  setPb('pb-hr',     'pb-lbl-hr',      dept.hr||0,      total);
+  var other = (dept.marketing||0)+(dept.ops||0)+(dept.hse||0)+(dept.quality||0);
+  setPb('pb-other',  'pb-lbl-other',   other, total);
+
+  // Dept summary grid (albaaр гүйцэтгэл)
+  renderDeptSummary();
+
+  // Charts
+  initCharts();
+
+  // Exec bars (зөвлөмжийн хэрэгжилт)
+  initExecBars();
+}
+
+// Алба тус бүрийн гүйцэтгэлийн card-уудыг violations array-с render хийх
+function renderDeptSummary() {
+  var grid = document.getElementById('dept-summary-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  var deptConfig = [
+    { key:'finance',   label:'💰 Санхүү',     color:'#3b82f6' },
+    { key:'atm',       label:'🔧 АТМ засвар', color:'#06b6d4' },
+    { key:'it',        label:'💻 МТ газар',   color:'#16a34a' },
+    { key:'sales',     label:'📊 Борлуулалт', color:'#a855f7' },
+    { key:'hr',        label:'👥 Хүний нөөц', color:'#d97706' },
+    { key:'marketing', label:'📣 Маркетинг',  color:'#ec4899' },
+    { key:'ops',       label:'🏥 Үйл аж.',   color:'#0ea5e9' },
+    { key:'hse',       label:'⛑️ ХАБЭА',     color:'#ef4444' },
+    { key:'quality',   label:'✅ Чанар',      color:'#84cc16' },
+  ];
+
+  deptConfig.forEach(function(dc) {
+    var deptViols = violations.filter(function(v){ return v.dept === dc.key; });
+    if (deptViols.length === 0) return;
+
+    var done=0, prog=0, wait=0, over=0;
+    deptViols.forEach(function(v) {
+      (v.recs||[]).forEach(function(r) {
+        var st = (window._saved && window._saved['status_rec_'+v.id+'_'+v.recs.indexOf(r)]) || r.status;
+        if(st==='done') done++;
+        else if(st==='prog') prog++;
+        else if(st==='wait') wait++;
+        else over++;
+      });
+    });
+    var totalRec = done+prog+wait+over || 1;
+    var pctDone = Math.round(done/totalRec*100);
+
+    var statusLabel, statusColor, statusBg;
+    if (pctDone >= 70)      { statusLabel='✅ Сайн';    statusColor='#16a34a'; statusBg='rgba(22,163,74,.12)'; }
+    else if (pctDone >= 40) { statusLabel='🔄 Дунд';   statusColor='#d97706'; statusBg='rgba(217,119,6,.12)'; }
+    else                    { statusLabel='⚠️ Анхаарал'; statusColor='#dc2626'; statusBg='rgba(220,38,38,.12)'; }
+
+    var progW   = Math.round(prog/totalRec*100);
+    var waitW   = Math.round(wait/totalRec*100);
+    var overW   = Math.max(0, 100 - pctDone - progW - waitW);
+
+    var card = document.createElement('div');
+    card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid '+dc.color+';border-radius:10px;padding:14px 16px';
+    card.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--text)">' + dc.label + '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="font-size:11px;font-weight:700;color:'+statusColor+';background:'+statusBg+';padding:2px 8px;border-radius:20px">' + statusLabel + '</span>' +
+          '<span style="font-size:18px;font-weight:900;color:'+dc.color+'">' + pctDone + '%</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="height:7px;border-radius:99px;overflow:hidden;display:flex;gap:1px;margin-bottom:8px">' +
+        '<div style="background:#16a34a;width:'+pctDone+'%" title="Хэрэгжсэн"></div>' +
+        '<div style="background:#3b82f6;width:'+progW+'%" title="Явцтай"></div>' +
+        '<div style="background:#d97706;width:'+waitW+'%" title="Хүлээгдэж байна"></div>' +
+        '<div style="background:#dc2626;flex:1;min-width:'+(overW>0?'4px':'0')+'" title="Хугацаа хэтэрсэн"></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;font-size:10.5px;color:var(--muted)">' +
+        '<span>✅ '+done+'</span><span>🔄 '+prog+'</span><span>⏳ '+wait+'</span><span>⚠️ '+over+'</span>' +
+        '<span style="margin-left:auto">Нийт '+deptViols.length+' зөрчил / '+(done+prog+wait+over)+' зөвлөмж</span>' +
+      '</div>';
+    grid.appendChild(card);
+  });
+}
+
 // ====== ГҮЙЦЭТГЭЛИЙН SUMMARY BAR ======
 function initExecBars() {
   var done=0, prog=0, wait=0, over=0;
@@ -2445,43 +2408,81 @@ function initExecBars() {
 
 // ====== PROGRESS BARS ======
 window.addEventListener('load', async () => {
-  // Google Sheets-с хамгийн сүүлийн өгөгдөл татаж _saved шинэчлэх
+  // Эхлээд localStorage-с render хийж хурдан харуулна
+  renderTable(violations);
+  initDashboard();
+  // Дараа нь Sheets-с sync хийж шинэчилнэ
   await DB.syncFromSheets();
   renderTable(violations);
-  setTimeout(() => { initExecBars(); }, 200);
-  setTimeout(() => {
-    document.querySelectorAll('.pb-fill').forEach(el => { el.style.width = el.getAttribute('data-w') + '%'; });
-  }, 400);
+  initDashboard();
 });
 
-// ====== CHARTS ======
-Chart.defaults.color = '#7d8590';
-Chart.defaults.font.family = "'DM Sans', sans-serif";
+// ====== CHARTS (dynamic) ======
+Chart.defaults.color = '#6b7280';
+Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
 
-new Chart(document.getElementById('c_risk').getContext('2d'), {
-  type: 'doughnut',
-  data: { labels:['Бага (24)','Дунд (18)','Сайжруулах (13)','Өндөр (1)','Маш өндөр (0)'],
-    datasets:[{ data:[24,18,13,1,0], backgroundColor:['#22c55e','#eab308','#3b82f6','#f97316','#ef4444'], borderWidth:2, borderColor:'#161b22', hoverOffset:8 }] },
-  options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, padding:8, color:'#7d8590' }}} }
-});
+var _chartRisk = null, _chartDept = null, _chartEval = null;
 
-new Chart(document.getElementById('c_dept').getContext('2d'), {
-  type:'bar',
-  data:{ labels:['Санхүү','Борлуулалт','АТМ','МТ','ХН','Маркетинг','Үйл аж.','ХАБЭА','Чанар'],
-    datasets:[{ data:[13,10,8,7,6,4,4,4,2], backgroundColor:['#58a6ff','#a855f7','#06b6d4','#22c55e','#eab308','#ec4899','#0ea5e9','#ef4444','#84cc16'], borderRadius:5, borderWidth:0 }] },
-  options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
-    plugins:{ legend:{display:false} },
-    scales:{ x:{ beginAtZero:true, grid:{color:'#2a3441'}, ticks:{color:'#7d8590',font:{size:10}} }, y:{ grid:{display:false}, ticks:{color:'#7d8590',font:{size:10}} } } }
-});
+function initCharts() {
+  var total = violations.length || 1;
+  var cnt = { vhigh:0, high:0, mid:0, low:0, impr:0 };
+  var dept = { finance:0, atm:0, sales:0, it:0, hr:0, marketing:0, ops:0, hse:0, quality:0 };
+  var evalCnt = { muu:0, dund:0 };
+  violations.forEach(function(v) {
+    if (cnt[v.risk] !== undefined) cnt[v.risk]++;
+    if (dept[v.dept] !== undefined) dept[v.dept]++;
+    if (evalCnt[v.eval] !== undefined) evalCnt[v.eval]++;
+  });
 
-new Chart(document.getElementById('c_eval').getContext('2d'), {
-  type:'bar',
-  data:{ labels:['МУУ (38)','ДУНД (18)'],
-    datasets:[{ data:[38,18], backgroundColor:['#ef4444','#eab308'], borderRadius:7, borderWidth:0 }] },
-  options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false} },
-    scales:{ y:{ beginAtZero:true, grid:{color:'#2a3441'}, ticks:{color:'#7d8590',stepSize:5} }, x:{ grid:{display:false}, ticks:{color:'#e6edf3',font:{size:12,weight:'700'}} } } }
-});
+  // Risk doughnut
+  if (_chartRisk) _chartRisk.destroy();
+  _chartRisk = new Chart(document.getElementById('c_risk').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: [
+        'Бага (' + cnt.low + ')',
+        'Дунд (' + cnt.mid + ')',
+        'Сайжруулах (' + cnt.impr + ')',
+        'Өндөр (' + cnt.high + ')',
+        'Маш өндөр (' + cnt.vhigh + ')'
+      ],
+      datasets:[{ data:[cnt.low, cnt.mid, cnt.impr, cnt.high, cnt.vhigh],
+        backgroundColor:['#16a34a','#d97706','#2563eb','#ea580c','#dc2626'],
+        borderWidth:2, borderColor:'var(--surface)', hoverOffset:8 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, padding:8, color:'#6b7280' }}} }
+  });
+
+  // Dept bar
+  var deptOrder = ['finance','sales','atm','it','hr','marketing','ops','hse','quality'];
+  var deptNames = { finance:'Санхүү', sales:'Борлуулалт', atm:'АТМ засвар', it:'МТ газар',
+    hr:'Хүний нөөц', marketing:'Маркетинг', ops:'Үйл аж.', hse:'ХАБЭА', quality:'Чанар' };
+  var deptColors = ['#3b82f6','#a855f7','#06b6d4','#16a34a','#d97706','#ec4899','#0ea5e9','#ef4444','#84cc16'];
+  var deptData = deptOrder.map(function(k){ return dept[k] || 0; });
+  var deptLabels = deptOrder.map(function(k){ return deptNames[k]; });
+  if (_chartDept) _chartDept.destroy();
+  _chartDept = new Chart(document.getElementById('c_dept').getContext('2d'), {
+    type:'bar',
+    data:{ labels:deptLabels, datasets:[{ data:deptData, backgroundColor:deptColors, borderRadius:5, borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{display:false} },
+      scales:{ x:{ beginAtZero:true, grid:{color:'rgba(0,0,0,.06)'}, ticks:{color:'#6b7280',font:{size:10}} },
+               y:{ grid:{display:false}, ticks:{color:'#6b7280',font:{size:10}} } } }
+  });
+
+  // Eval bar
+  if (_chartEval) _chartEval.destroy();
+  _chartEval = new Chart(document.getElementById('c_eval').getContext('2d'), {
+    type:'bar',
+    data:{ labels:['МУУ (' + evalCnt.muu + ')','ДУНД (' + evalCnt.dund + ')'],
+      datasets:[{ data:[evalCnt.muu, evalCnt.dund], backgroundColor:['#dc2626','#d97706'], borderRadius:7, borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{ beginAtZero:true, grid:{color:'rgba(0,0,0,.06)'}, ticks:{color:'#6b7280'} },
+               x:{ grid:{display:false}, ticks:{color:'#374151',font:{size:12,weight:'700'}} } } }
+  });
+}
 
 function openAddModal() {
   ['anv_name','anv_dept','anv_risk','anv_owner','anv_email','anv_deadline','anv_rec'].forEach(function(id){
@@ -2559,8 +2560,8 @@ function saveNewViolation() {
   document.body.style.overflow = '';
 
   // Update row count & re-render
-  filterRows();
-  document.getElementById('rowCount').textContent = violations.length;
+  renderTable(violations);
+  initDashboard();
 
   // Flash highlight new row after render
   setTimeout(function(){
@@ -2640,8 +2641,8 @@ function saveNewViolTab() {
   itemsEl.appendChild(card);
 
   // Update table
-  filterRows();
-  document.getElementById('rowCount').textContent = violations.length;
+  renderTable(violations);
+  initDashboard();
 
   // Clear form
   clearNewViolForm();
@@ -3573,9 +3574,8 @@ async function saveEditViolation() {
   if (saveBtn) { saveBtn.textContent = '✅ Хадгалагдлаа'; }
 
   // Table болон modal шинэчлэх
-  filterRows();
-  document.getElementById('rowCount').textContent = violations.length;
-  initExecBars();
+  renderTable(violations);
+  initDashboard();
 
   // Modal-ийн title, meta шинэчлэх
   document.getElementById('mTitle').textContent = v.name;
