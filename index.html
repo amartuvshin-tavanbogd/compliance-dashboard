@@ -2012,18 +2012,33 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDi
 
 // ====== GOOGLE SHEETS DATABASE CONFIG ======
 // ⬇ Apps Script Web App URL-ийг энд оруулна уу (deploy хийсний дараа)
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbyts7NdZAeJIJW1pLWg7C1Aeq-4Fhy6G7u2c2jBE-KWv4J_UBXR1anGSQa4rWn31k3AdQ/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzhNblu5aykJmThhosx9uLhQkfeEjqiN3mnRu2O9fvOHeIdgUqe4Z7L5_SmdoI22JM-cQ/exec';
 
 // Local cache: хурдан ачааллахад localStorage ашигладаг,
 // Google Sheets-д persist хийдэг
 const DB = {
   _cache: {},
 
-  // localStorage-с cache ачаалах
+  // localStorage-с cache ачаалах + violation_* сэргээх
   loadCache() {
     try {
       const raw = localStorage.getItem('compliance_db_v1');
-      if (raw) this._cache = JSON.parse(raw);
+      if (raw) {
+        this._cache = JSON.parse(raw);
+        // violation_* key-г violations array руу шууд сэргээх
+        // (Sheets sync хүлээхгүйгээр refresh хийх үед ч харагдана)
+        Object.keys(this._cache).forEach(key => {
+          if (key.startsWith('violation_')) {
+            try {
+              const val = this._cache[key];
+              const v = typeof val === 'string' ? JSON.parse(val) : val;
+              if (v && v.id && !violations.find(x => x.id === v.id)) {
+                violations.push(v);
+              }
+            } catch(e) {}
+          }
+        });
+      }
     } catch(e) { this._cache = {}; }
   },
 
@@ -2076,6 +2091,17 @@ const DB = {
         this.saveCache();
         // _saved-г шинэчлэх
         window._saved = Object.assign(window._saved || {}, this._cache);
+        // violation_* key-г violations array руу сэргээх
+        data.rows.forEach(row => {
+          if (row.key && row.key.startsWith('violation_') && row.value) {
+            try {
+              var v = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+              if (v && v.id && !violations.find(function(x){ return x.id === v.id; })) {
+                violations.push(v);
+              }
+            } catch(e) {}
+          }
+        });
         if (indicator) { indicator.textContent = '✅ Sync хийгдлээ'; setTimeout(() => { indicator.style.display = 'none'; }, 2000); }
       }
     } catch(e) {
@@ -2086,8 +2112,14 @@ const DB = {
 };
 
 // Хуудас ачаалахад cache-г эхлүүлэх
+// violations array тодорхойлогдсоны дараа дуудагдаж байна — зөв дараалал
 DB.loadCache();
 window._saved = Object.assign(window._saved || {}, DB._cache);
+// Шинэ зөрчлүүд localStorage-с сэргээгдсэн тул row count шинэчлэх
+document.addEventListener('DOMContentLoaded', function() {
+  var rc = document.getElementById('rowCount');
+  if (rc) rc.textContent = violations.length;
+});
 
 // ====== STATUS SELECT ======
 function onStatusChange(uid, sel) {
@@ -2340,6 +2372,10 @@ function saveNewViolation() {
   };
 
   violations.push(newViol);
+
+  // ── Google Sheets руу хадгалах ──
+  DB.set('violation_' + newId, JSON.stringify(newViol)).catch(function(){});
+
   document.getElementById('addModal').classList.remove('open');
   document.body.style.overflow = '';
 
@@ -2390,12 +2426,16 @@ function saveNewViolTab() {
   var newId = maxId + 1;
   var riskLabel2 = {high:'🔴 Өндөр', mid:'🟡 Дунд', low:'🟢 Бага', impr:'🔵 Сайжруулах'};
 
-  violations.push({
+  var newViolTab = {
     id: newId, dept: dept, risk: risk, eval: 'dund', rep: false,
     name: name, owner: owner, ownerTitle: '', unit: deptLabel[dept] || dept,
     evalOwner: owner, desc: name,
     recs: rec ? [{ text: rec, response: '', owner: owner, deadline: deadline, status: 'wait' }] : []
-  });
+  };
+  violations.push(newViolTab);
+
+  // ── Google Sheets руу хадгалах ──
+  DB.set('violation_' + newId, JSON.stringify(newViolTab)).catch(function(){});
 
   // Add to "added" list display
   var listEl = document.getElementById('nv_list');
