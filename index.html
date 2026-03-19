@@ -305,6 +305,12 @@ tbody tr.clickable:hover .arrow-icon { opacity: 1; }
     <span class="chip">🟠 1 өндөр эрсдэл</span>
     <span class="chip">🔁 12 давтагдсан</span>
     <span id="db-sync-indicator" style="display:none;font-size:11px;font-weight:600;color:var(--accent);padding:4px 10px;border-radius:20px;background:rgba(88,166,255,.1);border:1px solid var(--accent);transition:opacity .3s"></span>
+    <button onclick="importFromSheets()" id="import-btn"
+      style="font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px"
+      onmouseover="this.style.background='var(--accent)';this.style.color='#000'"
+      onmouseout="this.style.background='transparent';this.style.color='var(--accent)'">
+      ↓ Sheets-с шинэчлэх
+    </button>
   </div>
 </div>
 
@@ -1617,7 +1623,9 @@ let currentFilter = 'all';
 function renderTable(data) {
   const tbody = document.getElementById('mainTable');
   tbody.innerHTML = '';
-  data.forEach(v => {
+  // Хамгийн сүүлд нэмэгдсэн (id өндөр) эхэнд гарна
+  const sorted = [...data].sort((a, b) => b.id - a.id);
+  sorted.forEach(v => {
     const tr = document.createElement('tr');
     tr.className = 'clickable';
     tr.setAttribute('data-risk', v.risk);
@@ -2012,7 +2020,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDi
 
 // ====== GOOGLE SHEETS DATABASE CONFIG ======
 // ⬇ Apps Script Web App URL-ийг энд оруулна уу (deploy хийсний дараа)
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzhNblu5aykJmThhosx9uLhQkfeEjqiN3mnRu2O9fvOHeIdgUqe4Z7L5_SmdoI22JM-cQ/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbwaJXJDyY_JjVOLQgFfan6BOjhXWi2wgWbzrDewd5r5mokp96iAHdlXLVFlsGanid_29w/exec';
 
 // Local cache: хурдан ачааллахад localStorage ашигладаг,
 // Google Sheets-д persist хийдэг
@@ -2110,6 +2118,76 @@ const DB = {
     }
   }
 };
+
+// ====== SHEETS-С БҮГДИЙГ ШИНЭЧЛЭХ (товч дарсан үед) ======
+async function importFromSheets() {
+  if (!SHEETS_API_URL || SHEETS_API_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    alert('SHEETS_API_URL тохируулаагүй байна. compliance_sheets.html дотор SHEETS_API_URL-г оруулна уу.');
+    return;
+  }
+  const btn = document.getElementById('import-btn');
+  const indicator = document.getElementById('db-sync-indicator');
+  if (btn) { btn.textContent = '⏳ Татаж байна...'; btn.disabled = true; }
+  if (indicator) { indicator.textContent = '🔄 Sheets-с татаж байна...'; indicator.style.display = 'inline'; }
+
+  try {
+    const resp = await fetch(SHEETS_API_URL + '?action=getAll', { mode: 'cors' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (!data || !data.rows) throw new Error('Хариу буруу форматтай');
+
+    let addedCount = 0;
+    let statusCount = 0;
+
+    data.rows.forEach(row => {
+      if (!row.key) return;
+
+      // violation_* → violations array шинэчлэх
+      if (row.key.startsWith('violation_') && row.value) {
+        try {
+          const v = typeof row.value === 'string' ? JSON.parse(row.value) : row.value;
+          if (!v || !v.id) return;
+          const existing = violations.findIndex(x => x.id === v.id);
+          if (existing === -1) {
+            violations.push(v);
+            DB._cache[row.key] = row.value;
+            addedCount++;
+          } else {
+            // Байгаа зөрчлийн мэдээллийг шинэчлэх (нэр, тайлбар, зөвлөмж гэх мэт)
+            violations[existing] = Object.assign(violations[existing], v);
+          }
+        } catch(e) {}
+      }
+
+      // status_* / impl_* / impldate_* → _saved шинэчлэх
+      if (row.key.startsWith('status_') || row.key.startsWith('impl')) {
+        window._saved[row.key] = row.value;
+        DB._cache[row.key] = row.value;
+        statusCount++;
+      }
+    });
+
+    DB.saveCache();
+    // Violations array-г Sheets дахь violation_* key-тай тулгаж sync
+    // (Sheets-д байгаа боловч localStorage-д байхгүй зөрчил нэмэгдсэн)
+
+    // UI бүгдийг шинэчлэх
+    filterRows();
+    document.getElementById('rowCount').textContent = violations.length;
+    initExecBars();
+
+    const msg = '✅ ' + violations.length + ' зөрчил, ' + statusCount + ' статус шинэчлэгдлээ';
+    if (indicator) { indicator.textContent = msg; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+    if (btn) { btn.textContent = '✅ Шинэчлэгдлээ'; btn.disabled = false;
+      setTimeout(() => { btn.textContent = '↓ Sheets-с шинэчлэх'; }, 3000); }
+
+  } catch(e) {
+    const errMsg = '❌ Алдаа: ' + e.message;
+    if (indicator) { indicator.textContent = errMsg; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
+    if (btn) { btn.textContent = '↓ Sheets-с шинэчлэх'; btn.disabled = false; }
+    console.error('importFromSheets алдаа:', e);
+  }
+}
 
 // Хуудас ачаалахад cache-г эхлүүлэх
 // violations array тодорхойлогдсоны дараа дуудагдаж байна — зөв дараалал
