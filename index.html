@@ -804,7 +804,15 @@ tbody tr.clickable:hover .arrow-icon { opacity: 1; }
         <div class="modal-title" id="mTitle"></div>
         <div class="modal-meta" id="mMeta"></div>
       </div>
-      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      <div style="display:flex;gap:8px;flex-shrink:0;align-items:flex-start">
+        <button onclick="openEditModal()" id="btn-edit-viol"
+          style="font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px"
+          onmouseover="this.style.background='var(--accent)';this.style.color='#fff';this.style.borderColor='var(--accent)'"
+          onmouseout="this.style.background='var(--surface2)';this.style.color='var(--text)';this.style.borderColor='var(--border)'">
+          ✏️ Засах
+        </button>
+        <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      </div>
     </div>
     <div class="modal-body">
       <div class="section-label">Зөрчлийн тайлбар</div>
@@ -2104,7 +2112,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDi
 
 // ====== GOOGLE SHEETS DATABASE CONFIG ======
 // ⬇ Apps Script Web App URL-ийг энд оруулна уу (deploy хийсний дараа)
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbwVwBQTHeepzjkXjh-Yv6KU64nVbCyIFEt-M2mTJJCmTUNu9Rxhm3ulIDuvaxlZ3s3F/exec';
+const SHEETS_API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 // Local cache: хурдан ачааллахад localStorage ашигладаг,
 // Google Sheets-д persist хийдэг
@@ -3355,6 +3363,238 @@ function closeDetailPanel() {
 }
 
 
+
+// ====================================================
+// ====== EDIT VIOLATION — нууц үг + засах логик ======
+// ====================================================
+
+const EDIT_PASSWORD = 'audit2025'; // ← Энд нууц үгээ өөрчилнө
+
+// Нууц үг modal нээх
+function openEditModal() {
+  var overlay = document.getElementById('pw-modal-overlay');
+  var box     = document.getElementById('pw-modal-box');
+  var input   = document.getElementById('pw-input');
+  var err     = document.getElementById('pw-error');
+  overlay.style.display = 'flex';
+  err.style.display = 'none';
+  input.value = '';
+  requestAnimationFrame(function() {
+    box.style.transform = 'translateY(0)';
+    input.focus();
+  });
+}
+
+function closePwModal(e) {
+  if (e && e.target !== document.getElementById('pw-modal-overlay')) return;
+  var overlay = document.getElementById('pw-modal-overlay');
+  var box     = document.getElementById('pw-modal-box');
+  box.style.transform = 'translateY(20px)';
+  setTimeout(function() { overlay.style.display = 'none'; }, 200);
+}
+
+function togglePwVis() {
+  var input = document.getElementById('pw-input');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function checkPassword() {
+  var input = document.getElementById('pw-input');
+  var err   = document.getElementById('pw-error');
+  if (input.value === EDIT_PASSWORD) {
+    closePwModal(null);
+    setTimeout(openEditViolModal, 250);
+  } else {
+    err.style.display = 'block';
+    input.value = '';
+    input.focus();
+    // Shake animation
+    var box = document.getElementById('pw-modal-box');
+    box.style.animation = 'none';
+    box.style.transform = 'translateX(-8px)';
+    setTimeout(function() { box.style.transform = 'translateX(8px)'; }, 80);
+    setTimeout(function() { box.style.transform = 'translateX(-4px)'; }, 160);
+    setTimeout(function() { box.style.transform = 'translateX(0)'; }, 240);
+  }
+}
+
+// Засах modal нээх — одоогийн зөрчлийн утгаар дүүргэх
+function openEditViolModal() {
+  var v = violations.find(function(x) { return x.id === _currentViolId; });
+  if (!v) return;
+
+  document.getElementById('edit-modal-num').textContent = 'ЗӨРЧИЛ #' + String(v.id).padStart(2,'0');
+  document.getElementById('ev_name').value  = v.name  || '';
+  document.getElementById('ev_desc').value  = v.desc  || '';
+  document.getElementById('ev_dept').value  = v.dept  || 'finance';
+  document.getElementById('ev_risk').value  = v.risk  || 'low';
+  document.getElementById('ev_owner').value = v.owner || '';
+  document.getElementById('ev_email').value = v.email || '';
+  document.getElementById('ev_err').style.display = 'none';
+
+  // Зөвлөмжүүдийг дүүргэх
+  renderEditRecs(v.recs || []);
+
+  var overlay = document.getElementById('edit-modal-overlay');
+  var box     = document.getElementById('edit-modal-box');
+  overlay.style.display = 'flex';
+  requestAnimationFrame(function() { box.style.transform = 'translateY(0)'; });
+}
+
+function closeEditViolModal(e) {
+  if (e && e.target !== document.getElementById('edit-modal-overlay')) return;
+  var overlay = document.getElementById('edit-modal-overlay');
+  var box     = document.getElementById('edit-modal-box');
+  box.style.transform = 'translateY(24px)';
+  setTimeout(function() { overlay.style.display = 'none'; }, 280);
+}
+
+// Зөвлөмжийн мөрүүдийг render хийх
+function renderEditRecs(recs) {
+  var container = document.getElementById('ev_recs_container');
+  container.innerHTML = '';
+  recs.forEach(function(r, i) {
+    container.appendChild(buildRecRow(r, i));
+  });
+}
+
+function buildRecRow(r, i) {
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative';
+  wrap.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-light);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px">R${i+1}</span>
+      <span style="font-size:12px;color:var(--muted);font-weight:600">Зөвлөмж</span>
+      <button onclick="removeEditRec(this)" tabindex="-1"
+        style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 4px;transition:color .15s"
+        onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+    </div>
+    <textarea class="ev-rec-text" rows="2"
+      style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;background:var(--surface);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;resize:vertical;outline:none;box-sizing:border-box;margin-bottom:10px;transition:border-color .2s"
+      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+      placeholder="Зөвлөмжийн текст...">${escHtml(r.text||'')}</textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Хариуцагч</label>
+        <input class="ev-rec-owner form-input" type="text" value="${escHtml(r.owner||'')}" placeholder="Овог.Нэр" style="padding:7px 10px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Дедлайн</label>
+        <input class="ev-rec-deadline form-input" type="date" value="${r.deadline||''}" style="padding:7px 10px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Статус</label>
+        <select class="ev-rec-status form-input" style="padding:7px 10px;font-size:13px;cursor:pointer">
+          <option value="wait" ${(r.status||'wait')==='wait'?'selected':''}>⏳ Хүлээгдэж байна</option>
+          <option value="prog" ${r.status==='prog'?'selected':''}>🔄 Хэрэгжиж байна</option>
+          <option value="done" ${r.status==='done'?'selected':''}>✅ Хэрэгжсэн</option>
+          <option value="over" ${r.status==='over'?'selected':''}>⚠️ Хугацаа хэтэрсэн</option>
+        </select>
+      </div>
+    </div>`;
+  return wrap;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function addEditRec() {
+  var container = document.getElementById('ev_recs_container');
+  var i = container.children.length;
+  container.appendChild(buildRecRow({ text:'', owner:'', deadline:'', status:'wait' }, i));
+  // R дугаар шинэчлэх
+  refreshRecNums();
+}
+
+function removeEditRec(btn) {
+  btn.closest('[style*="position:relative"]').remove();
+  refreshRecNums();
+}
+
+function refreshRecNums() {
+  var container = document.getElementById('ev_recs_container');
+  Array.from(container.children).forEach(function(row, i) {
+    var badge = row.querySelector('span[style*="JetBrains"]');
+    if (badge) badge.textContent = 'R' + (i+1);
+  });
+}
+
+// Хадгалах — violations array + DB + Sheet
+async function saveEditViolation() {
+  var name  = (document.getElementById('ev_name').value  || '').trim();
+  var desc  = (document.getElementById('ev_desc').value  || '').trim();
+  var dept  = document.getElementById('ev_dept').value;
+  var risk  = document.getElementById('ev_risk').value;
+  var owner = (document.getElementById('ev_owner').value || '').trim();
+  var email = (document.getElementById('ev_email').value || '').trim();
+  var err   = document.getElementById('ev_err');
+
+  if (!name) {
+    err.textContent = '⚠️ Зөрчлийн нэрийг оруулна уу';
+    err.style.display = 'block';
+    document.getElementById('ev_name').focus();
+    return;
+  }
+  err.style.display = 'none';
+
+  // Зөвлөмжүүд цуглуулах
+  var container = document.getElementById('ev_recs_container');
+  var recs = Array.from(container.children).map(function(row) {
+    return {
+      text:     (row.querySelector('.ev-rec-text').value     || '').trim(),
+      owner:    (row.querySelector('.ev-rec-owner').value    || '').trim(),
+      deadline:  row.querySelector('.ev-rec-deadline').value || '',
+      status:    row.querySelector('.ev-rec-status').value   || 'wait',
+      response: ''
+    };
+  }).filter(function(r) { return r.text; });
+
+  // violations array шинэчлэх
+  var v = violations.find(function(x) { return x.id === _currentViolId; });
+  if (!v) return;
+
+  v.name  = name;
+  v.desc  = desc;
+  v.dept  = dept;
+  v.risk  = risk;
+  v.owner = owner;
+  v.email = email;
+  v.unit  = deptLabel[dept] || dept;
+  v.recs  = recs;
+
+  // Save button loading state
+  var saveBtn = document.querySelector('#edit-modal-box button[onclick="saveEditViolation()"]');
+  if (saveBtn) { saveBtn.textContent = '⏳ Хадгалж байна...'; saveBtn.disabled = true; }
+
+  // DB хадгалах
+  await DB.set('violation_' + v.id, JSON.stringify(v));
+
+  if (saveBtn) { saveBtn.textContent = '✅ Хадгалагдлаа'; }
+
+  // Table болон modal шинэчлэх
+  filterRows();
+  document.getElementById('rowCount').textContent = violations.length;
+  initExecBars();
+
+  // Modal-ийн title, meta шинэчлэх
+  document.getElementById('mTitle').textContent = v.name;
+  document.getElementById('mNum').textContent = 'ЗӨРЧИЛ #' + String(v.id).padStart(2,'0') + ' · ' + (deptLabel[v.dept]||v.dept) + ' · Аудит 2025–2026';
+  document.getElementById('mMeta').innerHTML =
+    '<span class="badge ' + (riskClass[v.risk]||'') + '">' + (riskLabel[v.risk]||'') + '</span>' +
+    '<span class="badge ' + (evalClass[v.eval]||'') + '">' + v.eval.toUpperCase() + ' үнэлгээ</span>' +
+    (v.rep ? '<span class="badge b-rep">🔁 Давтагдсан: ' + v.repInfo + '</span>' : '') +
+    '<span style="font-size:11px;color:var(--muted)">' + v.unit + '</span>';
+  document.getElementById('mDesc').textContent = v.desc;
+
+  showReminderToast('✅ Зөрчил #' + String(v.id).padStart(2,'0') + ' амжилттай засагдлаа', true);
+
+  setTimeout(function() {
+    closeEditViolModal(null);
+    if (saveBtn) { saveBtn.textContent = '💾 Хадгалах'; saveBtn.disabled = false; }
+  }, 800);
+}
+
 </script>
 
 
@@ -3662,6 +3902,148 @@ function closeDetailPanel() {
           style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer">Болих</button>
         <button onclick="saveNewViolation()"
           style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--accent);color:#000;font-size:13px;font-weight:700;cursor:pointer">✅ Нэмэх</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== PASSWORD MODAL ===== -->
+<div id="pw-modal-overlay" onclick="closePwModal(event)"
+  style="display:none;position:fixed;inset:0;background:rgba(17,24,39,.65);backdrop-filter:blur(4px);z-index:1100;align-items:center;justify-content:center">
+  <div id="pw-modal-box"
+    style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:translateY(20px);transition:transform .25s">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:48px;height:48px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px">🔒</div>
+      <div style="font-size:17px;font-weight:800;color:var(--text);letter-spacing:-0.3px">Нууц үг оруулна уу</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px">Зөрчил засахын тулд зөвшөөрөл шаардлагатай</div>
+    </div>
+    <div style="position:relative;margin-bottom:14px">
+      <input type="password" id="pw-input" placeholder="Нууц үг"
+        style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 42px 11px 14px;font-size:15px;background:var(--surface2);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--accent)'"
+        onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')checkPassword()">
+      <button onclick="togglePwVis()" tabindex="-1"
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:2px">
+        👁
+      </button>
+    </div>
+    <div id="pw-error" style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:12px;display:none;text-align:center">❌ Нууц үг буруу байна</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closePwModal(null)"
+        style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif"
+        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+        Болих
+      </button>
+      <button onclick="checkPassword()"
+        style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s"
+        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        Нэвтрэх →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EDIT VIOLATION MODAL ===== -->
+<div id="edit-modal-overlay" onclick="closeEditViolModal(event)"
+  style="display:none;position:fixed;inset:0;background:rgba(17,24,39,.72);backdrop-filter:blur(4px);z-index:1100;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto">
+  <div id="edit-modal-box"
+    style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:660px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:translateY(24px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)">
+
+    <!-- Header -->
+    <div style="padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);font-weight:600;letter-spacing:.5px;margin-bottom:5px" id="edit-modal-num"></div>
+        <div style="font-size:17px;font-weight:800;letter-spacing:-0.3px">Зөрчил засах</div>
+      </div>
+      <button onclick="closeEditViolModal(null)"
+        style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:16px;padding:7px 11px;line-height:1;transition:all .15s"
+        onmouseover="this.style.background='var(--red)';this.style.color='#fff'" onmouseout="this.style.background='var(--surface2)';this.style.color='var(--muted)'">✕</button>
+    </div>
+
+    <!-- Form body -->
+    <div style="padding:24px 26px;display:flex;flex-direction:column;gap:16px">
+
+      <!-- Нэр / тайлбар -->
+      <div>
+        <label class="form-label">Зөрчлийн нэр <span style="color:var(--red)">*</span></label>
+        <input id="ev_name" type="text" class="form-input" placeholder="Зөрчлийн нэр">
+      </div>
+      <div>
+        <label class="form-label">Зөрчлийн тайлбар</label>
+        <textarea id="ev_desc" rows="4"
+          style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:11px 13px;font-size:14px;background:var(--surface2);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;resize:vertical;outline:none;box-sizing:border-box;transition:border-color .2s;line-height:1.6"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          placeholder="Тайлбар..."></textarea>
+      </div>
+
+      <!-- Алба / Эрсдэл -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <label class="form-label">Алба / нэгж</label>
+          <select id="ev_dept" class="form-input" style="cursor:pointer">
+            <option value="finance">💰 Санхүү</option>
+            <option value="atm">🔧 АТМ засвар</option>
+            <option value="sales">📊 Борлуулалт</option>
+            <option value="it">💻 МТ газар</option>
+            <option value="hr">👥 Хүний нөөц</option>
+            <option value="marketing">📣 Маркетинг</option>
+            <option value="ops">🏥 Үйл аж.</option>
+            <option value="quality">✅ Чанар</option>
+            <option value="hse">⛑️ ХАБЭА</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Эрсдэлийн түвшин</label>
+          <select id="ev_risk" class="form-input" style="cursor:pointer">
+            <option value="high">🔴 Өндөр</option>
+            <option value="mid">🟡 Дунд</option>
+            <option value="low">🟢 Бага</option>
+            <option value="impr">🔵 Сайжруулах</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Хариуцагч / email -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <label class="form-label">Хариуцагч</label>
+          <input id="ev_owner" type="text" class="form-input" placeholder="Овог.Нэр">
+        </div>
+        <div>
+          <label class="form-label">Имэйл</label>
+          <input id="ev_email" type="email" class="form-input" placeholder="example@tavanbogd.com">
+        </div>
+      </div>
+
+      <!-- Зөвлөмжүүд -->
+      <div>
+        <label class="form-label" style="margin-bottom:10px">Зөвлөмжүүд</label>
+        <div id="ev_recs_container" style="display:flex;flex-direction:column;gap:10px"></div>
+        <button onclick="addEditRec()"
+          style="margin-top:10px;padding:8px 16px;border-radius:8px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;width:100%;transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif"
+          onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          + Зөвлөмж нэмэх
+        </button>
+      </div>
+
+      <!-- Error -->
+      <div id="ev_err" style="font-size:13px;color:var(--red);font-weight:600;display:none;padding:10px 14px;background:rgba(220,38,38,.06);border-radius:8px;border:1px solid rgba(220,38,38,.2)"></div>
+
+      <!-- Buttons -->
+      <div style="display:flex;gap:12px;padding-top:4px">
+        <button onclick="closeEditViolModal(null)"
+          style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s"
+          onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+          Болих
+        </button>
+        <button onclick="saveEditViolation()"
+          style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s;box-shadow:0 4px 14px rgba(59,130,246,.35)"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          💾 Хадгалах
+        </button>
       </div>
     </div>
   </div>
