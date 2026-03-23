@@ -1914,10 +1914,13 @@ function openModal(id) {
                 <div style="font-weight:600">👤 ${r.owner}</div>
                 ${r.ownerTitle ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">🏷️ ${r.ownerTitle}</div>` : (v.ownerTitle ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">🏷️ ${v.ownerTitle}</div>` : '')}
               </div>
-              <button class="remind-btn" data-vid="${v.id}" data-owner="${r.owner}" data-deadline="${r.deadline}"
-                style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;transition:all .2s;white-space:nowrap">
-                📧 Reminder
-              </button>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <button class="remind-btn" data-vid="${v.id}" data-owner="${r.owner}" data-deadline="${r.deadline}"
+                  style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;transition:all .2s;white-space:nowrap">
+                  📧 Reminder илгээх
+                </button>
+                <div style="font-size:10.5px;color:var(--muted);text-align:center">${ownerEmailMap[r.owner] ? ownerEmailMap[r.owner] : (v.email || '—')}</div>
+              </div>
             </div>
           </div>
           <div class="rec-field"><label>Хэрэгжүүлэх хугацаа</label><div class="val">📅 ${r.deadline}</div></div>
@@ -2195,7 +2198,30 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDi
 
 // ====== GOOGLE SHEETS DATABASE CONFIG ======
 // ⬇ Apps Script Web App URL-ийг энд оруулна уу (deploy хийсний дараа)
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxTJsgGeJTltY1vs48RkkhkprAIHlcNvsUGYy3j35sfxYg2REQReokmJAS2VdZEm1aQ/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxf5HeBwmXqTcxopQ_hSPg-sFmBJjaIg06hBYsABkAzCZiJTp7hi2dzmDzCyrZjVBEW/exec';
+
+
+// ====== JSONP fetch helper — CORS-г тойрч Apps Script-с өгөгдөл татна ======
+function fetchJsonp(url) {
+  return new Promise(function(resolve, reject) {
+    var cbName = '_gs_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    var script = document.createElement('script');
+    var timer = setTimeout(function() {
+      delete window[cbName]; script.remove();
+      reject(new Error('Timeout'));
+    }, 10000);
+    window[cbName] = function(data) {
+      clearTimeout(timer); delete window[cbName]; script.remove();
+      resolve(data);
+    };
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    script.onerror = function() {
+      clearTimeout(timer); delete window[cbName];
+      reject(new Error('Network error'));
+    };
+    document.head.appendChild(script);
+  });
+}
 
 // Local cache: хурдан ачааллахад localStorage ашигладаг,
 // Google Sheets-д persist хийдэг
@@ -2256,18 +2282,13 @@ const DB = {
     }
   },
 
-  // Google Sheets-с бүх өгөгдөл татах (хуудас ачаалах үед)
+  // Google Sheets-с бүх өгөгдөл татах — JSONP ашиглан CORS тойрна
   async syncFromSheets() {
     if (!SHEETS_API_URL || SHEETS_API_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
     if (!SHEETS_API_URL.includes('script.google.com/macros/s/')) return;
     const indicator = document.getElementById('db-sync-indicator');
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
-      const resp = await fetch(SHEETS_API_URL + '?action=getAll', { mode: 'cors', signal: controller.signal });
-      clearTimeout(timeout);
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const data = await resp.json();
+      const data = await fetchJsonp(SHEETS_API_URL + '?action=getAll');
       if (data && data.rows) {
         data.rows.forEach(row => {
           if (row.key && row.value !== undefined) {
@@ -2307,9 +2328,7 @@ async function importFromSheets() {
   if (indicator) { indicator.textContent = '🔄 Sheets-с татаж байна...'; indicator.style.display = 'inline'; }
 
   try {
-    const resp = await fetch(SHEETS_API_URL + '?action=getAll', { mode: 'cors' });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
+    const data = await fetchJsonp(SHEETS_API_URL + '?action=getAll');
     if (!data || !data.rows) throw new Error('Хариу буруу форматтай');
 
     let addedCount = 0;
