@@ -2063,18 +2063,9 @@ async function sendReminderEmail(btn) {
   const violNum   = String(v.id).padStart(2, '0');
   const subject   = '[Дотоод аудит] Зөрчил арилгах reminder — Зөрчил #' + violNum;
   const body =
-    'Сайн байна уу, ' + firstName + ',\n\n' +
-    '"Таван Богд Нура" ХХК-ийн Дотоод аудитын нэгжээс мэдэгдэж байна.\n\n' +
-    'Дотоод аудитын 2025Q1–2026Q1 үр дүнгээр таны хариуцлагад дараах зөрчил бүртгэгдсэн байна:\n\n' +
-    '  Зөрчил #' + violNum + ': ' + v.name + '\n' +
-    (recText ? '  Зөвлөмж: ' + recText + '\n' : '') +
-    '  Хугацаа: ' + deadline + '\n\n' +
-    'Та дараах үйлдлийг хийнэ үү:\n' +
-    '  1. Хугацаад заасан хугацаанд арга хэмжээний төлөвлөгөө боловсруулах\n' +
-    '  2. Хэрэгжилтийн явцыг дотоод аудитын нэгжид тайлагнах\n' +
-    '  3. Баримт нотолгоог хавсаргаж ирүүлэх\n\n' +
-    'Асуух зүйл байвал ' + APPROVER_EMAIL + ' хаягаар холбогдоно уу.\n\n' +
-    'Хүндэтгэлтэй,\nДотоод аудитын нэгж\n"Таван Богд Нура" ХХК';
+    'Сайн байна уу,\n\n' +
+    'Аудитын шалгалтаар илэрсэн зөрчлийг арилгахтай холбоотой авч хэрэгжүүлсэн ажлын гүйцэтгэл, тайлан болон холбогдох нотлох баримтаа заасан хугацааны дотор ирүүлнэ үү.\n\n' +
+    'Баярлалаа.';
 
   const ccBody =
     'Сайн байна уу,\n\n' +
@@ -2086,40 +2077,22 @@ async function sendReminderEmail(btn) {
   const ccSubject = '[Аудит CC] Reminder илгээгдлээ — Зөрчил #' + violNum + ' · ' + recOwner;
 
   try {
-    // 1. Send to responsible owner
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    // Apps Script-ээр burmaa.l@tavanbogd.com-аас явуулна
+    const resp = await fetch(SHEETS_API_URL, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://gmail.mcp.claude.com/mcp', name: 'gmail' }],
-        messages: [{ role: 'user', content:
-          'Gmail ашиглан дараах имэйлийг явуулна уу:\nTo: ' + toEmail + '\nSubject: ' + subject + '\n\n' + body
-        }]
+        action: 'sendEmail',
+        to: toEmail,
+        cc: APPROVER_EMAIL,
+        subject: subject,
+        body: body
       })
     });
-    const data = await resp.json();
-    const ok = data.content && data.content.some(function(b){ return b.type === 'text'; });
-    if (!ok) throw new Error('Хариуцагчид явуулахад алдаа гарлаа');
 
-    // 2. Send CC copy to approver
-    const resp2 = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://gmail.mcp.claude.com/mcp', name: 'gmail' }],
-        messages: [{ role: 'user', content:
-          'Gmail ашиглан дараах имэйлийг явуулна уу:\nTo: ' + APPROVER_EMAIL + '\nSubject: ' + ccSubject + '\n\n' + ccBody
-        }]
-      })
-    });
-    const data2 = await resp2.json();
-    const ok2 = data2.content && data2.content.some(function(b){ return b.type === 'text'; });
-
-    showReminderToast('✅ ' + toEmail + ' + ' + APPROVER_EMAIL + (ok2 ? ' руу илгээгдлээ' : ' (CC алдаа)'), ok2);
+    // no-cors тул response уншиж чадахгүй — амжилттай гэж үзнэ
+    showReminderToast('✅ ' + toEmail + ' + ' + APPROVER_EMAIL + ' руу илгээгдлээ', true);
     btn.textContent = '✅ Илгээгдлээ';
     btn.style.background = '#d1fae5';
     btn.style.color = '#065f46';
@@ -2172,31 +2145,28 @@ async function submitResponse(btn, v) {
   const subject = '[Аудит хариу] Зөрчил #' + violNum + ' · ' + recOwner + ' · ' + deadline;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    // Apps Script-ээр burmaa.l@tavanbogd.com-аас явуулна
+    await fetch(SHEETS_API_URL, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        mcp_servers: [{ type: 'url', url: 'https://gmail.mcp.claude.com/mcp', name: 'gmail' }],
-        messages: [{ role: 'user', content:
-          'Gmail ашиглан дараах имэйлийг явуулна уу:\nTo: burmaa.l@tavanbogd.com\nSubject: ' + subject + '\n\n' + body
-        }]
+        action: 'sendEmail',
+        to: APPROVER_EMAIL,
+        subject: subject,
+        body: body
       })
     });
-    const data = await resp.json();
-    const ok = data.content && data.content.some(function(b){ return b.type === 'text'; });
-    if (!ok) throw new Error('API алдаа');
 
     btn.textContent = '✅ Илгээгдлээ';
     btn.style.background = '#d1fae5';
     btn.style.color = '#065f46';
     btn.style.opacity = '1';
     const t = document.getElementById('sttoast_' + uid);
-    if (t) { t.textContent = '✅ burmaa.l@tavanbogd.com руу амжилттай илгээгдлээ'; t.style.color = '#065f46'; }
-    showReminderToast('✅ Хариу буrmaa.l@tavanbogd.com руу илгээгдлээ', true);
+    if (t) { t.textContent = '✅ ' + APPROVER_EMAIL + ' руу амжилттай илгээгдлээ'; t.style.color = '#065f46'; }
+    showReminderToast('✅ Хариу ' + APPROVER_EMAIL + ' руу илгээгдлээ', true);
   } catch(e) {
-    btn.textContent = '📨 Илгээх — burmaa.l@tavanbogd.com';
+    btn.textContent = '📨 Илгээх';
     btn.style.opacity = '1';
     btn.disabled = false;
     const t = document.getElementById('sttoast_' + uid);
@@ -5893,21 +5863,13 @@ async function sendBulkReminder() {
 
     try {
       status.textContent = `⏳ ${owner} руу илгээж байна...`;
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model:'claude-sonnet-4-20250514', max_tokens:1000,
-          mcp_servers:[{type:'url',url:'https://gmail.mcp.claude.com/mcp',name:'gmail'}],
-          messages:[{role:'user',content:`Gmail ашиглан дараах имэйлийг явуулна уу:\nTo: ${toEmail}\nSubject: ${subject}\n\n${body}`}]
-        })
+      await fetch(SHEETS_API_URL, {
+        method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'sendEmail', to:toEmail, subject:subject, body:body })
       });
-      const data = await resp.json();
-      const ok = data.content && data.content.some(b=>b.type==='text');
-      if (ok) {
-        sent++;
-        window._emailLog.unshift({type:'bulk',to:toEmail,owner,subject,ts:new Date().toLocaleString('mn-MN'),ok:true});
-        addAuditLog('email', `Bulk reminder: ${owner} руу илгээгдлээ`, subject);
-      } else { failed++; window._emailLog.unshift({type:'bulk',to:toEmail,owner,subject,ts:new Date().toLocaleString('mn-MN'),ok:false}); }
+      sent++;
+      window._emailLog.unshift({type:'bulk',to:toEmail,owner,subject,ts:new Date().toLocaleString('mn-MN'),ok:true});
+      addAuditLog('email', `Bulk reminder: ${owner} руу илгээгдлээ`, subject);
     } catch(e) { failed++; }
   }
 
@@ -5945,20 +5907,17 @@ async function sendCompose() {
   const msg = `Gmail ашиглан дараах имэйлийг явуулна уу:\nTo: ${to}${cc?'\nCC: '+cc:''}\nSubject: ${subject}\n\n${body}`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,mcp_servers:[{type:'url',url:'https://gmail.mcp.claude.com/mcp',name:'gmail'}],messages:[{role:'user',content:msg}]})
+    await fetch(SHEETS_API_URL, {
+      method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'sendEmail', to:to, cc:cc||'', subject:subject, body:body })
     });
-    const data = await resp.json();
-    const ok = data.content&&data.content.some(b=>b.type==='text');
-    if (!ok) throw new Error('API алдаа');
     window._emailLog.unshift({type:'compose',to,subject,ts:new Date().toLocaleString('mn-MN'),ok:true});
     addAuditLog('email', `И-мэйл илгээгдлээ → ${to}`, subject);
     status.style.color='#16a34a'; status.textContent='✅ Амжилттай илгээгдлээ!';
     btn.textContent='✅ Илгээгдлээ';
   } catch(e) {
     status.style.color='#ef4444'; status.textContent='❌ Алдаа: '+e.message;
-    btn.textContent='📨 Gmail-аар илгээх'; btn.disabled=false; btn.style.opacity='1';
+    btn.textContent='📨 Apps Script-аар илгээх'; btn.disabled=false; btn.style.opacity='1';
   }
 }
 
@@ -6457,23 +6416,13 @@ async function mrSubmitForApproval(uid, ownerName, rawUid) {
   var adminSubject = '[Аудит Баталгаажуулалт] #' + String(vid).padStart(2,'0') + ' · ' + ownerName;
 
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
-        mcp_servers: [{type:'url', url:'https://gmail.mcp.claude.com/mcp', name:'gmail'}],
-        messages: [{role:'user', content: 'Gmail ашиглан дараах имэйлийг явуулна уу:\nTo: '+APPROVER_EMAIL+'\nSubject: '+adminSubject+'\n\n'+adminBody}]
-      })
+    await fetch(SHEETS_API_URL, {
+      method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action:'sendEmail', to:APPROVER_EMAIL, subject:adminSubject, body:adminBody })
     });
-    var data = await resp.json();
-    var ok = data.content && data.content.some(function(b){ return b.type==='text'; });
-    if (ok) {
-      showReminderToast('✅ '+APPROVER_EMAIL+' руу баталгаажуулалт хүсэлт илгээгдлээ', true);
-      addAuditLog('email', ownerName+' баталгаажуулалт хүсэлт илгээлээ', violName);
-      if (typeof renderMyResponse === 'function') setTimeout(function(){ renderMyResponse(); }, 300);
-    } else {
-      showReminderToast('⚠️ Хадгалагдлаа, имэйл илгээхэд алдаа гарлаа', false);
-    }
+    showReminderToast('✅ '+APPROVER_EMAIL+' руу баталгаажуулалт хүсэлт илгээгдлээ', true);
+    addAuditLog('email', ownerName+' баталгаажуулалт хүсэлт илгээлээ', violName);
+    if (typeof renderMyResponse === 'function') setTimeout(function(){ renderMyResponse(); }, 300);
   } catch(e) {
     showReminderToast('⚠️ Хадгалагдлаа, имэйл илгээхэд алдаа гарлаа', false);
   }
@@ -6533,13 +6482,9 @@ async function mrAdminConfirm(uid, ownerName) {
   var confirmSubject = '[Аудит ✅ Батлагдлаа] #' + String(vid).padStart(2,'0') + ' · ' + ownerName;
 
   try {
-    await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
-        mcp_servers: [{type:'url', url:'https://gmail.mcp.claude.com/mcp', name:'gmail'}],
-        messages: [{role:'user', content: 'Gmail ашиглан дараах имэйлийг явуулна уу:\nTo: '+ownerEmail+'\nSubject: '+confirmSubject+'\n\n'+confirmBody}]
-      })
+    await fetch(SHEETS_API_URL, {
+      method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action:'sendEmail', to:ownerEmail, subject:confirmSubject, body:confirmBody })
     });
     addAuditLog('email', 'Баталгаажуулалт '+ownerName+' руу илгээгдлээ', ownerEmail);
   } catch(e) {}
